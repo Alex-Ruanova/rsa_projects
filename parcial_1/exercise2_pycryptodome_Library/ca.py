@@ -35,19 +35,18 @@ def embed_signature_in_pdf(pdf_path, signature, output_pdf_path, signature_key):
 
 def ca_verifies_and_signs_document(input_pdf_path, ca_private_key_path, alice_public_key_path, output_pdf_path):
     print("CA starts verifying document...")
-    # Hash the document content using hashlib, similar to alice.py
-    hash_obj = hash_pdf_content(input_pdf_path).digest()
-    # Extract Alice's signature from the PDF
+    hash_obj = hash_pdf_content(input_pdf_path)
     alice_signature = extract_signature_from_pdf(input_pdf_path, '/AliceSignature')
-    # Load Alice's public key
     with open(alice_public_key_path, 'r') as f:
         alice_public_key = f.read()
-    # Verify Alice's signature
+    print(f"Using Alice's public key for verification: {alice_public_key[:50]}...")  # Added log
     is_signature_valid = verify_signature(hash_obj, alice_signature, alice_public_key)
     if is_signature_valid:
-        # Sign the document with CA's private key and embed the signature
-        print("CA signing document...")
-        # Embed CA's signature into the document
-        print("CA's signature process completed.")
+        with open(ca_private_key_path, 'r') as f:
+            ca_private_key = f.read()
+        ca_signature = sign_hash(hash_obj, ca_private_key)
+        print("CA signing document...")  # Added log
+        embed_signature_in_pdf(input_pdf_path, ca_signature, output_pdf_path, '/CASignature')
+        print("CA's signature process completed.")  # Added log
     else:
         print("CA could not verify Alice's signature.")

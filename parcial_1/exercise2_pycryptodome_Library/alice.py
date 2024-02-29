@@ -2,14 +2,13 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 import PyPDF2
-import hashlib
+
 def hash_pdf_content(pdf_path):
     with open(pdf_path, 'rb') as f:
         pdf_content = f.read()
-    # Use hashlib to create the hash
-    hasher = hashlib.sha256(pdf_content)
-    print(f"PDF content read for hashing: {len(pdf_content)} bytes")  # Log the content size
-    print(f"Document hashed, hash_obj: {hasher.hexdigest()}")  # Log the hash
+        print(f"PDF content read for hashing: {len(pdf_content)} bytes")  # Added log
+        hasher = SHA256.new(pdf_content)
+    print(f"Document hashed, hash_obj: {hasher.hexdigest()}")
     return hasher
 
 def sign_hash(hash_obj, private_key):
