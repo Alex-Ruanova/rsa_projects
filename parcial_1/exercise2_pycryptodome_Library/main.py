@@ -19,8 +19,8 @@ def main():
     ca_private_key_path = 'ca_private.pem'
     ca_public_key_path = 'ca_public.pem'
     original_document = 'NDA.pdf'
-    signed_by_alice = 'signed_by_alice.pdf'
-    signed_by_ca = 'signed_by_ca.pdf'
+    signed_by_alice = 'NDA.pdf'
+    signed_by_ca = 'NDA.pdf'
 
     # Alice signs the document
     alice.alice_signs_document(original_document, alice_private_key_path, signed_by_alice)
