@@ -1,13 +1,13 @@
 # bob.py
-
+import fitz
 from ca import extract_signature_from_pdf, verify_signature
 from alice import hash_pdf_content
 
 
 def bob_verifies_document(pdf_path, alice_public_key_path, ca_public_key_path):
     hash_obj = hash_pdf_content(pdf_path)
-    alice_signature = extract_signature_from_pdf(pdf_path, '/AliceSignature')
-    ca_signature = extract_signature_from_pdf(pdf_path, '/CASignature')
+    alice_signature = extract_signature_from_pdf(pdf_path, 'AliceSignature')
+    ca_signature = extract_signature_from_pdf(pdf_path, 'CASignature')
 
     with open(alice_public_key_path, 'r') as f:
         alice_public_key = f.read()

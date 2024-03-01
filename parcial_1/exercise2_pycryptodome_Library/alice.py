@@ -1,7 +1,7 @@
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
-import PyPDF2
+import fitz
 
 def hash_pdf_content(pdf_path):
     with open(pdf_path, 'rb') as f:
@@ -18,19 +18,22 @@ def sign_hash(hash_obj, private_key):
     return signature
 
 def embed_signature_in_pdf(pdf_path, signature, output_pdf_path):
-    reader = PyPDF2.PdfReader(pdf_path)
-    writer = PyPDF2.PdfWriter()
+    doc = fitz.open(pdf_path)
+    doc.metadata['AliceSignature'] = signature.hex()  # Correct key used here
+    doc.save(output_pdf_path, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
+    print("Signature embedded into PDF metadata.")
+    doc.close()  # Close the document right after saving to ensure changes are written
 
-    for page in reader.pages:
-        writer.add_page(page)
+    # Quick read-back test
+    test_doc = fitz.open(output_pdf_path)
+    test_metadata = test_doc.metadata
+    test_signature_hex = test_metadata.get('AliceSignature', None)  # Correct key used here
+    if test_signature_hex:
+        print(f"Immediate read-back test successful, signature: {test_signature_hex[:10]}...")
+    else:
+        print("Immediate read-back test failed, no signature found.")
+    test_doc.close()
 
-    metadata = reader.metadata
-    new_metadata = {**metadata, '/AliceSignature': str(signature)}
-    writer.add_metadata(new_metadata)
-
-    with open(output_pdf_path, 'wb') as f_out:
-        writer.write(f_out)
-    print("Signature embedded into metadata.")  # Added log
 
 def alice_signs_document(pdf_path, private_key_path, output_pdf_path):
     print(f"Starting document signing process for: {pdf_path}")
