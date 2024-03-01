@@ -1,26 +1,23 @@
-# main.py
-
 import alice
 import ca
 import bob
 import key_manager  # Import the key management module
 
-def main():
-    # Generate and save keys for Alice
-    alice_private_key, alice_public_key = key_manager.generate_rsa_keys()
-    key_manager.save_keys(alice_private_key, alice_public_key, 'alice_private.pem', 'alice_public.pem')
 
-    # Generate and save keys for CA
-    ca_private_key, ca_public_key = key_manager.generate_rsa_keys()
-    key_manager.save_keys(ca_private_key, ca_public_key, 'ca_private.pem', 'ca_public.pem')
+def main():
+    # Genera o carga las llaves para Alice
+    alice_private_key, alice_public_key = key_manager.load_or_generate_keys('alice_private.pem', 'alice_public.pem')
+
+    # Genera o carga las llaves para la CA
+    ca_private_key, ca_public_key = key_manager.load_or_generate_keys('ca_private.pem', 'ca_public.pem')
 
     alice_private_key_path = 'alice_private.pem'
     alice_public_key_path = 'alice_public.pem'
     ca_private_key_path = 'ca_private.pem'
     ca_public_key_path = 'ca_public.pem'
-    original_document = 'NDA.pdf'
-    signed_by_alice = 'NDA.pdf'
-    signed_by_ca = 'NDA.pdf'
+    original_document = 'hola.txt'
+    signed_by_alice = 'hola.txt'
+    signed_by_ca = 'hola.txt'
 
     # Alice signs the document
     alice.alice_signs_document(original_document, alice_private_key_path, signed_by_alice)
