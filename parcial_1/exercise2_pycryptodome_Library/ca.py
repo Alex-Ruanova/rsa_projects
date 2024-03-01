@@ -1,20 +1,22 @@
-from alice import hash_pdf_content, sign_hash, append_signature_to_pdf
+from alice import hash_pdf_content, sign_hash
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 
-def extract_signature_from_pdf(pdf_path, signature_id):
-    with open(pdf_path, 'rb') as pdf_file:
-        pdf_content = pdf_file.read()
-    signature_pos = pdf_content.rfind(signature_id.encode())  # Find the unique identifier
+
+def extract_signature_from_content(content, signature_id):
+    # Asegúrate de que signature_id sea un objeto de tipo bytes
+    if isinstance(signature_id, str):
+        signature_id = signature_id.encode()  # Convierte str a bytes si es necesario
+
+    signature_pos = content.rfind(signature_id)
     if signature_pos != -1:
-        signature_start = signature_pos + len(signature_id)  # Adjust to start of signature
-        signature_end = pdf_content.find(b'--', signature_start)  # Assume signature is followed by another delimiter
-        signature = pdf_content[signature_start:signature_end] if signature_end != -1 else pdf_content[signature_start:]
+        signature_start = signature_pos + len(signature_id)
+        signature = content[signature_start:]
         print(f"{signature_id} extracted: {signature[:10]}... length: {len(signature)}")
-        return signature
+        return content[:signature_pos], signature  # Retorna el contenido sin la firma y la firma
     else:
-        print(f"{signature_id} not found in PDF file.")
-        return None
+        print(f"{signature_id.decode()} not found.")  # Decodifica para imprimir como str
+        return content, None
 
 def verify_signature(hash_obj, signature, public_key):
     if signature is None:
@@ -29,21 +31,16 @@ def verify_signature(hash_obj, signature, public_key):
         print(f"The signature is not valid. Error: {str(e)}")
         return False
 
-def ca_verifies_and_signs_document(input_pdf_path, ca_private_key_path, alice_public_key_path, output_pdf_path):
+def ca_verifies_and_signs_document(content, ca_private_key, alice_public_key):
     print("CA starts verifying document...")
-    hash_obj = hash_pdf_content(input_pdf_path, exclude_signature=True)
-    alice_signature = extract_signature_from_pdf(input_pdf_path, "--ALICESIGNATURE--")
-    if alice_signature is None:
-        print("Failed to extract Alice's signature from the document. Aborting verification.")
-        return
-    with open(alice_public_key_path, 'r') as f:
-        alice_public_key = f.read()
-    is_signature_valid = verify_signature(hash_obj, alice_signature, alice_public_key)
-    if is_signature_valid:
-        with open(ca_private_key_path, 'r') as f:
-            ca_private_key = f.read()
+    content_without_signature, alice_signature = extract_signature_from_content(content, b"--ALICESIGNATURE--")
+    hash_obj = hash_pdf_content(content_without_signature, exclude_signature=True)
+    # Usa la clave pública directamente, ya en formato correcto, no como ruta de archivo
+    if verify_signature(hash_obj, alice_signature, alice_public_key):
         ca_signature = sign_hash(hash_obj, ca_private_key)
-        append_signature_to_pdf(input_pdf_path, ca_signature, output_pdf_path, "--CASIGNATURE--")
+        signed_content = content_without_signature + b"--CASIGNATURE--" + ca_signature
         print("CA's signature process completed.")
+        return signed_content
     else:
         print("CA could not verify Alice's signature.")
+        return content  # Return original content if verification fails
