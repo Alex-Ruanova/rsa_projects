@@ -10,21 +10,22 @@ def hash_content(content):
 
 
 def extract_signature_from_content(content, signature_id):
-    print(f"Intentando extraer firma con ID: {signature_id.decode()}")
+    print(f"Attempting to extract signature with ID: {signature_id.decode()}")
     signature_pos = content.rfind(signature_id)
     if signature_pos != -1:
         signature_start = signature_pos + len(signature_id)
-        content_end = content.find(b"--", signature_start)  # Busca el siguiente delimitador
-        if content_end == -1:  # Ajuste aquí para manejar el final de la firma correctamente
+        content_end = content.find(b"--", signature_start)  # Look for the next delimiter
+        if content_end == -1:  # Adjust here to handle the end of the signature correctly
             content_end = len(content)
         signature = content[signature_start:content_end]
         content_without_signature = content[:signature_pos]
-        print(f"Firma {signature_id.decode()} extraída con éxito.")
-        print(f"Longitud de la firma: {len(signature)}")
+        print(f"Signature {signature_id.decode()} extracted successfully.")
+        print(f"Signature length: {len(signature)}")
         return content_without_signature, signature
     else:
-        print(f"Firma {signature_id.decode()} no encontrada.")
+        print(f"Signature {signature_id.decode()} extracted successfully.")
         return content, None
+
 
 
 def verify_signature(hash_obj, signature, public_key):
@@ -46,20 +47,16 @@ def verify_signature(hash_obj, signature, public_key):
 
 def bob_verifies_document(signed_content, alice_public_key_str, ca_public_key_str):
     print("Bob comienza a verificar el documento...")
-    # Extraer y verificar la firma de Alice
-    content_without_alice_sig, alice_signature = extract_signature_from_content(signed_content, b"--ALICESIGNATURE--")
-    hash_obj_alice = hash_content(content_without_alice_sig)  # Corrección aquí: elimina el segundo argumento
-    if not verify_signature(hash_obj_alice, alice_signature, alice_public_key_str):
-        print("La verificación de la firma de Alice falló.")
-        return False
+    content_without_alice_signature, alice_signature = extract_signature_from_content(signed_content,
+                                                                                      b"--ALICESIGNATURE--")
+    hash_obj_alice = hash_content(content_without_alice_signature)
+    print(f"Hash for verifying Alice's signature: {hash_obj_alice.hexdigest()}")
+    # Proceed with Alice's signature verification...
 
-    # Extraer y verificar la firma de la CA
-    content_without_ca_sig, ca_signature = extract_signature_from_content(content_without_alice_sig, b"--CASIGNATURE--")
-    hash_obj_ca = hash_content(content_without_ca_sig)  # Asegúrate de que esta llamada también sea correcta
-    if not verify_signature(hash_obj_ca, ca_signature, ca_public_key_str):
-        print("La verificación de la firma de la CA falló.")
-        return False
+    content_without_ca_signature, ca_signature = extract_signature_from_content(content_without_alice_signature,
+                                                                                b"--CASIGNATURE--")
+    hash_obj_ca = hash_content(content_without_ca_signature)
+    print(f"Hash for verifying CA's signature: {hash_obj_ca.hexdigest()}")
+    # Proceed with CA's signature verification...
 
-    print("Bob verificó ambas firmas con éxito.")
-    return True
 

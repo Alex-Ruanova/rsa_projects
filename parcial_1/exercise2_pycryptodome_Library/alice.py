@@ -24,6 +24,9 @@ def alice_signs_document(content, private_key):
     print("Starting document signing process...")
     hash_obj = hash_pdf_content(content)
     signature = sign_hash(hash_obj, private_key)
+    print(f"Document length before Alice's signature: {len(content)} bytes")
     signed_content = content + b"--ALICESIGNATURE--" + signature
+    print(f"Document length after Alice's signature: {len(signed_content)} bytes")
     print("Document signing process completed.")
     return signed_content
+
