@@ -21,15 +21,9 @@ def sign_hash(hash_obj, private_key):
 
 
 def alice_signs_document(content, private_key):
-    print("Starting document signing process...")  # Log
-
-    # Aquí asumimos que `private_key` ya es la clave privada en formato adecuado, no una ruta de archivo
-    signer = pkcs1_15.new(RSA.import_key(private_key))
+    print("Starting document signing process...")
     hash_obj = hash_pdf_content(content)
-    signature = signer.sign(hash_obj)
-    print(f"Signature generated: {signature[:10]}... length: {len(signature)}")  # Log
-
+    signature = sign_hash(hash_obj, private_key)
     signed_content = content + b"--ALICESIGNATURE--" + signature
-    print("Document signing process completed.")  # Log
-
+    print("Document signing process completed.")
     return signed_content

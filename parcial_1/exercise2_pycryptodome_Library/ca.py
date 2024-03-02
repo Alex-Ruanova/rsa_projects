@@ -4,18 +4,16 @@ from Crypto.Signature import pkcs1_15
 
 
 def extract_signature_from_content(content, signature_id):
-    # Asegúrate de que signature_id sea un objeto de tipo bytes
-    if isinstance(signature_id, str):
-        signature_id = signature_id.encode()  # Convierte str a bytes si es necesario
-
-    signature_pos = content.rfind(signature_id)
+    signature_id_bytes = signature_id if isinstance(signature_id, bytes) else signature_id.encode()
+    signature_pos = content.rfind(signature_id_bytes)
     if signature_pos != -1:
-        signature_start = signature_pos + len(signature_id)
+        signature_start = signature_pos + len(signature_id_bytes)
         signature = content[signature_start:]
+        content_without_signature = content[:signature_pos]
         print(f"{signature_id} extracted: {signature[:10]}... length: {len(signature)}")
-        return content[:signature_pos], signature  # Retorna el contenido sin la firma y la firma
+        return content_without_signature, signature
     else:
-        print(f"{signature_id.decode()} not found.")  # Decodifica para imprimir como str
+        print(f"{signature_id} not found.")
         return content, None
 
 def verify_signature(hash_obj, signature, public_key):
@@ -34,8 +32,7 @@ def verify_signature(hash_obj, signature, public_key):
 def ca_verifies_and_signs_document(content, ca_private_key, alice_public_key):
     print("CA starts verifying document...")
     content_without_signature, alice_signature = extract_signature_from_content(content, b"--ALICESIGNATURE--")
-    hash_obj = hash_pdf_content(content_without_signature, exclude_signature=True)
-    # Usa la clave pública directamente, ya en formato correcto, no como ruta de archivo
+    hash_obj = hash_pdf_content(content_without_signature)
     if verify_signature(hash_obj, alice_signature, alice_public_key):
         ca_signature = sign_hash(hash_obj, ca_private_key)
         signed_content = content_without_signature + b"--CASIGNATURE--" + ca_signature
@@ -43,4 +40,4 @@ def ca_verifies_and_signs_document(content, ca_private_key, alice_public_key):
         return signed_content
     else:
         print("CA could not verify Alice's signature.")
-        return content  # Return original content if verification fails
+        return content
