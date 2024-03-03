@@ -7,7 +7,7 @@ def main():
     alice_private_key, alice_public_key = key_manager.load_or_generate_keys('alice_private.pem', 'alice_public.pem')
     ca_private_key, ca_public_key = key_manager.load_or_generate_keys('ca_private.pem', 'ca_public.pem')
 
-    with open('hola.txt', 'rb') as file:
+    with open('NDA.pdf', 'rb') as file:
         original_content = file.read()
 
     signed_content_by_alice = alice.alice_signs_document(original_content, alice_private_key)
